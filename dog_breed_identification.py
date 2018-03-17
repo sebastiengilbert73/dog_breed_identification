@@ -161,15 +161,16 @@ class ConvNeuralNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2))
         self.linear1 = nn.Sequential(
-            nn.Linear(25088, classesNbr)
+            nn.Linear(int(args.imageSize/8) * int(args.imageSize/8) * conv3Nbr, classesNbr)
         )
         self.dropout = nn.Dropout2d(p=dropoutRatio)
+        self.conv3Nbr = conv3Nbr
 
     def forward(self, inputs):
         conv1 = self.conv_block1(inputs)
         conv2 = self.conv_block2(conv1)
         conv3 = self.conv_block3(conv2)
-        vector3 = conv3.view(-1, 25088)
+        vector3 = conv3.view(-1, int(args.imageSize/8) * int(args.imageSize/8) * self.conv3Nbr)
         drop3 = self.dropout(vector3)
         outputLin = self.linear1(drop3)
         return F.log_softmax(outputLin)
