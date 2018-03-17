@@ -196,6 +196,11 @@ def MinibatchIndices(numberOfSamples, minibatchSize):
     return minibatchesIndicesList
 
 
+if args.cuda:
+    validationTensor = validationTensor.cuda()
+if args.cuda:
+    validationLabelTensor = validationLabelTensor.cuda()
+
 minibatchSize = 64
 minibatchIndicesListList = MinibatchIndices(args.maximumNumberOfTrainingImages, minibatchSize)
 #print ("minibatchIndicesListList = {}".format(minibatchIndicesListList))
