@@ -16,6 +16,7 @@ parser.add_argument('labelsPlusTrainOrValid', help='The csv file with 3 columns:
 parser.add_argument('--imageSize', help='The size cropped from a 256 x 256 image', type=int, default=224)
 parser.add_argument('--maximumNumberOfTrainingImages', help='The maximum number of training images to load', type=int, default=0)
 parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
+parser.add_argument('--dropoutRatio', help='The dropout ratio', type=float, default=0.5)
 args = parser.parse_args()
 args.cuda = not args.disable_cuda and torch.cuda.is_available()
 
@@ -172,7 +173,7 @@ class ConvNeuralNet(nn.Module):
         outputLin = self.linear1(drop3)
         return F.log_softmax(outputLin)
 
-neuralNet = ConvNeuralNet(classesNbr=numberOfBreeds)
+neuralNet = ConvNeuralNet(classesNbr=numberOfBreeds, dropoutRatio=args.dropoutRatio)
 if args.cuda:
     neuralNet.cuda() # Move to GPU
 
