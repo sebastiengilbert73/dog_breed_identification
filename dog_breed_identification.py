@@ -219,9 +219,10 @@ for epoch in range(200):
         # Forward pass
         actualOutput = neuralNet(minibatchInputImagesTensor)
         # Loss
-        targetOutputShape = minibatchTargetOutputTensor.data.shape
+        """targetOutputShape = minibatchTargetOutputTensor.data.shape
         actualOutputShape = actualOutput.data.shape
         print("targetOutputShape = {}; actualOutputShape = {}".format(targetOutputShape, actualOutputShape))
+        """
         loss = lossFunction(F.log_softmax(actualOutput), minibatchTargetOutputTensor)
         # if minibatchNdx == 0:
         #    print("Train loss = {}".format(loss.data[0]))
@@ -235,4 +236,8 @@ for epoch in range(200):
 
     averageTrainLoss = averageTrainLoss / len(minibatchIndicesListList)
 
-    print("Epoch {}: Average train loss ={}".format(epoch, averageTrainLoss))
+    # Validation loss
+    validationOutput = neuralNet(validationTensor)
+    validationLoss = lossFunction(F.log_softmax(validationOutput), validationLabelTensor)
+
+    print("Epoch {}: Average train loss ={}; validationLoss = {}".format(epoch, averageTrainLoss, validationLoss))
