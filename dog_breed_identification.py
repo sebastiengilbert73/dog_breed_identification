@@ -16,6 +16,8 @@ parser.add_argument('labelsPlusTrainOrValid', help='The csv file with 3 columns:
 parser.add_argument('--imageSize', help='The size cropped from a 256 x 256 image', type=int, default=224)
 parser.add_argument('--maximumNumberOfTrainingImages', help='The maximum number of training images to load', type=int, default=0)
 parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
+parser.add_argument('--learningRate', help='The learning rate', type=float, default=0.001)
+parser.add_argument('--momentum', help='The learning momentum', type=float, default=0.9)
 parser.add_argument('--dropoutRatio', help='The dropout ratio', type=float, default=0.5)
 parser.add_argument('--numberOfKernelsPerLayer', help='The number of convolution kernels of each layer', type=int, default=32)
 args = parser.parse_args()
@@ -183,9 +185,8 @@ neuralNet = ConvNeuralNet(conv1Nbr=args.numberOfKernelsPerLayer,
 if args.cuda:
     neuralNet.cuda() # Move to GPU
 
-learningRate = 0.001
-momentum = 0.9
-optimizer = torch.optim.SGD(neuralNet.parameters(), lr=learningRate, momentum=momentum)
+
+optimizer = torch.optim.SGD(neuralNet.parameters(), lr=args.learningRate, momentum=args.momentum)
 lossFunction = nn.NLLLoss()
 
 def MinibatchIndices(numberOfSamples, minibatchSize):
