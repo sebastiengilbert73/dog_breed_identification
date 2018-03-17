@@ -237,7 +237,8 @@ for epoch in range(200):
     averageTrainLoss = averageTrainLoss / len(minibatchIndicesListList)
 
     # Validation loss
-    validationOutput = neuralNet(validationTensor)
-    validationLoss = lossFunction(F.log_softmax(validationOutput), validationLabelTensor)
+    validationOutput = neuralNet( torch.autograd.Variable(validationTensor) )
+    validationLoss = lossFunction(F.log_softmax(validationOutput), torch.autograd.Variable(
+        validationLabelTensor) )
 
-    print("Epoch {}: Average train loss ={}; validationLoss = {}".format(epoch, averageTrainLoss, validationLoss))
+    print("Epoch {}: Average train loss ={}; validationLoss = {}".format(epoch, averageTrainLoss, validationLoss.data[0]))
