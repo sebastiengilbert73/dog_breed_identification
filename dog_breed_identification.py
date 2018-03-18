@@ -55,7 +55,7 @@ numberOfBreeds = idLabelUsageDataFrame.breed.nunique()
 #print("numberOfBreeds = {}".format(numberOfBreeds))
 #print ("breedFrqDataFrame = {}".format(breedFrqDataFrame))
 breedsList = idLabelUsageDataFrame.breed.unique()
-print("breedsList = {}".format(breedsList))
+#print("breedsList = {}".format(breedsList))
 
 def BreedIndex(breed, breedsList):
     foundIndex = -1
@@ -197,12 +197,12 @@ for epoch in range(200):
 
         minibatchInputImagesTensor = torch.autograd.Variable(
             torch.index_select(trainTensor, 0, torch.LongTensor(minibatchIndicesList)))
-        if args.cuda:
-            minibatchInputImagesTensor = minibatchInputImagesTensor.cuda()
         minibatchTargetOutputTensor = torch.autograd.Variable(
             torch.index_select(trainLabelTensor, 0, torch.LongTensor(minibatchIndicesList)))
         if args.cuda:
+            minibatchInputImagesTensor = minibatchInputImagesTensor.cuda()
             minibatchTargetOutputTensor = minibatchTargetOutputTensor.cuda()
+            neuralNet.cuda()
 
         # Zero gradients
         optimizer.zero_grad()
