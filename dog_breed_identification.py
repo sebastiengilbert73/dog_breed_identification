@@ -7,19 +7,22 @@ import pandas
 import PIL
 import os
 import numpy
+import ConvStackClassifier
 
 print("dog_breed_identification")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('baseDirectory', help='The directory containing the train and test folders')
 parser.add_argument('labelsPlusTrainOrValid', help='The csv file with 3 columns: id, breed, usage (train or valid)')
+parser.add_argument('--numberOfConvolutionLayers', help='The number of convolution layers', type=int, default=3)
+parser.add_argument('--numberOfKernelsPerLayer', help='The number of convolution kernels of each layer', type=int, default=32)
 parser.add_argument('--imageSize', help='The size cropped from a 256 x 256 image', type=int, default=224)
 parser.add_argument('--maximumNumberOfTrainingImages', help='The maximum number of training images to load', type=int, default=0)
 parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--learningRate', help='The learning rate', type=float, default=0.001)
 parser.add_argument('--momentum', help='The learning momentum', type=float, default=0.9)
 parser.add_argument('--dropoutRatio', help='The dropout ratio', type=float, default=0.5)
-parser.add_argument('--numberOfKernelsPerLayer', help='The number of convolution kernels of each layer', type=int, default=32)
+
 args = parser.parse_args()
 args.cuda = not args.disable_cuda and torch.cuda.is_available()
 
@@ -144,44 +147,18 @@ for validationExampleNdx in range(numberOfValidationImages):
         print("validationExampleNdx {}/{}".format(validationExampleNdx, numberOfValidationImages))
 
 
-print ("validationLabelTensor = {}".format(validationLabelTensor))
+#print ("validationLabelTensor = {}".format(validationLabelTensor))
 
 # Create a neural network
-class ConvNeuralNet(nn.Module):
-    def __init__(self, conv1Nbr=32, conv2Nbr=32, conv3Nbr=32, dropoutRatio=0.5, classesNbr=4):
-        super(ConvNeuralNet, self).__init__()
-        self.conv_block1 = nn.Sequential(
-            nn.Conv2d(3, conv1Nbr, kernel_size=7, padding=3),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2))
-        self.conv_block2 = nn.Sequential(
-            nn.Conv2d(conv1Nbr, conv2Nbr, kernel_size=7, padding=3),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2))
-        self.conv_block3 = nn.Sequential(
-            nn.Conv2d(conv2Nbr, conv3Nbr, kernel_size=7, padding=3),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2))
-        self.linear1 = nn.Sequential(
-            nn.Linear(int(args.imageSize/8) * int(args.imageSize/8) * conv3Nbr, classesNbr)
-        )
-        self.dropout = nn.Dropout2d(p=dropoutRatio)
-        self.conv3Nbr = conv3Nbr
+numberOfConvolutionKernelsList = []
+maxPoolingKernelList = []
+for layerNdx in range(args.numberOfConvolutionLayers):
+    numberOfConvolutionKernelsList.append(args.numberOfKernelsPerLayer)
+    maxPoolingKernelList.append(2)
 
-    def forward(self, inputs):
-        conv1 = self.conv_block1(inputs)
-        conv2 = self.conv_block2(conv1)
-        conv3 = self.conv_block3(conv2)
-        vector3 = conv3.view(-1, int(args.imageSize/8) * int(args.imageSize/8) * self.conv3Nbr)
-        drop3 = self.dropout(vector3)
-        outputLin = self.linear1(drop3)
-        return F.log_softmax(outputLin)
-
-neuralNet = ConvNeuralNet(conv1Nbr=args.numberOfKernelsPerLayer,
-                          conv2Nbr=args.numberOfKernelsPerLayer,
-                          conv3Nbr=args.numberOfKernelsPerLayer,
-                          classesNbr=numberOfBreeds,
-                          dropoutRatio=args.dropoutRatio)
+neuralNet = ConvStackClassifier.NeuralNet(numberOfConvolutionKernelsList, maxPoolingKernelList,
+                                          numberOfBreeds, args.imageSize,
+                                          args.dropoutRatio)
 if args.cuda:
     neuralNet.cuda() # Move to GPU
 
@@ -236,7 +213,7 @@ for epoch in range(200):
         actualOutputShape = actualOutput.data.shape
         print("targetOutputShape = {}; actualOutputShape = {}".format(targetOutputShape, actualOutputShape))
         """
-        loss = lossFunction(F.log_softmax(actualOutput), minibatchTargetOutputTensor)
+        loss = lossFunction(actualOutput, minibatchTargetOutputTensor)
         # if minibatchNdx == 0:
         #    print("Train loss = {}".format(loss.data[0]))
 
