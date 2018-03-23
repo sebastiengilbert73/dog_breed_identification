@@ -5,7 +5,6 @@ import math
 from collections import OrderedDict
 
 class NeuralNet(nn.Module):
-    #def __init__(self, numberOfConvolutionKernelsList, maxPoolingKernelList, numberOfInputChannels,
     def __init__(self, numberOfConvolutions_KernelSize_Pooling_List, numberOfInputChannels,
                  classesNbr, imageSize, dropoutRatio=0.5):
         super(NeuralNet, self).__init__()
@@ -38,7 +37,7 @@ class NeuralNet(nn.Module):
         self.linear1 = nn.Linear(self.lastLayerImageSize * self.lastLayerImageSize *
                                  self.lastLayerNumberOfChannels, classesNbr)
         self.dropout = nn.Dropout2d(p=dropoutRatio)
-        self.numberOfConvolutionLayers = len(numberOfConvolutionKernelsList)
+        self.numberOfConvolutionLayers = len(numberOfConvolutions_KernelSize_Pooling_List)
 
     def forward(self, inputs):
         activation = self.convLayers[0](inputs)
@@ -48,4 +47,4 @@ class NeuralNet(nn.Module):
         vector = activation.view(-1, self.lastLayerImageSize * self.lastLayerImageSize * self.lastLayerNumberOfChannels)
         drop = self.dropout(vector)
         outputLin = self.linear1(drop)
-        return F.log_softmax(outputLin, dim=0)
+        return F.log_softmax(outputLin)
