@@ -10,6 +10,7 @@ class NeuralNet(nn.Module):
                  classesNbr, imageSize, dropoutRatio=0.5):
         super(NeuralNet, self).__init__()
 
+
         if len(numberOfConvolutions_KernelSize_Pooling_List) < 1:
             raise RuntimeError("ConvStackClassifier.NeuralNet.__init__(): The number of convolution layers is 0")
         self.lastLayerImageSize = imageSize
@@ -37,7 +38,7 @@ class NeuralNet(nn.Module):
         self.linear1 = nn.Linear(self.lastLayerImageSize * self.lastLayerImageSize *
                                  self.lastLayerNumberOfChannels, classesNbr)
         self.dropout = nn.Dropout2d(p=dropoutRatio)
-
+        self.numberOfConvolutionLayers = len(numberOfConvolutionKernelsList)
 
     def forward(self, inputs):
         activation = self.convLayers[0](inputs)
@@ -47,4 +48,4 @@ class NeuralNet(nn.Module):
         vector = activation.view(-1, self.lastLayerImageSize * self.lastLayerImageSize * self.lastLayerNumberOfChannels)
         drop = self.dropout(vector)
         outputLin = self.linear1(drop)
-        return F.log_softmax(outputLin)
+        return F.log_softmax(outputLin, dim=0)

@@ -228,7 +228,7 @@ for epoch in range(200):
 
     # Validation loss
     validationOutput = neuralNet( torch.autograd.Variable(validationTensor) )
-    validationLoss = lossFunction(F.log_softmax(validationOutput), torch.autograd.Variable(
+    validationLoss = lossFunction(validationOutput, torch.autograd.Variable(
         validationLabelTensor) )
 
     print("Epoch {}: Average train loss ={}; validationLoss = {}".format(epoch, averageTrainLoss, validationLoss.data[0]))
