@@ -22,6 +22,7 @@ parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--learningRate', help='The learning rate', type=float, default=0.001)
 parser.add_argument('--momentum', help='The learning momentum', type=float, default=0.9)
 parser.add_argument('--dropoutRatio', help='The dropout ratio', type=float, default=0.5)
+parser.add_argument('--structure', help='The neural network structure. Ex.: ConvStack_1_2_32_7_2_32_7_2_10_28_0.5')
 
 args = parser.parse_args()
 args.cuda = not args.disable_cuda and torch.cuda.is_available()
@@ -52,7 +53,7 @@ if args.maximumNumberOfTrainingImages <= 0 or args.maximumNumberOfTrainingImages
 # maltese_dog                       117
 # ...
 numberOfBreeds = idLabelUsageDataFrame.breed.nunique()
-#print("numberOfBreeds = {}".format(numberOfBreeds))
+print("numberOfBreeds = {}".format(numberOfBreeds))
 #print ("breedFrqDataFrame = {}".format(breedFrqDataFrame))
 breedsList = idLabelUsageDataFrame.breed.unique()
 #print("breedsList = {}".format(breedsList))
@@ -150,15 +151,19 @@ for validationExampleNdx in range(numberOfValidationImages):
 #print ("validationLabelTensor = {}".format(validationLabelTensor))
 
 # Create a neural network
-numberOfConvolutionKernelsList = []
-maxPoolingKernelList = []
-for layerNdx in range(args.numberOfConvolutionLayers):
-    numberOfConvolutionKernelsList.append(args.numberOfKernelsPerLayer)
-    maxPoolingKernelList.append(2)
+if args.structure is not None:
+    neuralNet = ConvStackClassifier.NeuralNet(structure=args.structure)
 
-neuralNet = ConvStackClassifier.NeuralNet(numberOfConvolutionKernelsList, maxPoolingKernelList,
-                                          numberOfBreeds, args.imageSize,
-                                          args.dropoutRatio)
+else:
+    numberOfConvolutionKernelsList = []
+    maxPoolingKernelList = []
+    for layerNdx in range(args.numberOfConvolutionLayers):
+        numberOfConvolutionKernelsList.append(args.numberOfKernelsPerLayer)
+        maxPoolingKernelList.append(2)
+
+    neuralNet = ConvStackClassifier.NeuralNet(numberOfConvolutionKernelsList, maxPoolingKernelList,
+                                              numberOfBreeds, args.imageSize,
+                                              args.dropoutRatio)
 if args.cuda:
     neuralNet.cuda() # Move to GPU
 
