@@ -206,6 +206,11 @@ if args.cuda:
 
 minibatchSize = 64
 minibatchIndicesListList = MinibatchIndices(args.maximumNumberOfTrainingImages, minibatchSize)
+
+trainingDataFilepath = os.path.join(args.saveDirectory, 'trainingEpochs.csv')
+trainingDataFile = open(trainingDataFilepath, "w")
+trainingDataFile.write('epoch,averageTrainLoss,validationLoss\n')
+
 #print ("minibatchIndicesListList = {}".format(minibatchIndicesListList))
 for epoch in range(200):
     averageTrainLoss = 0
@@ -263,3 +268,4 @@ for epoch in range(200):
     neuralNet.Save(args.saveDirectory, str(validationLoss.data[0]))
     trainingDataFile.write("{},{},{}\n".format(epoch, averageTrainLoss, validationLoss.data[0]))
 
+trainingDataFile.close()
