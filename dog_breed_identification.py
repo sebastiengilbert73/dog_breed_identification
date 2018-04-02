@@ -22,10 +22,23 @@ parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--learningRate', help='The learning rate', type=float, default=0.001)
 parser.add_argument('--momentum', help='The learning momentum', type=float, default=0.9)
 parser.add_argument('--dropoutRatio', help='The dropout ratio', type=float, default=0.5)
+parser.add_argument('--saveDirectory', help='The directory where the files will be saved', default='/tmp')
 parser.add_argument('--structure', help='The neural network structure. Ex.: ConvStack_1_2_32_7_2_32_7_2_10_28_0.5')
 
 args = parser.parse_args()
 args.cuda = not args.disable_cuda and torch.cuda.is_available()
+
+# -------------------- Utilities -------------------------------
+def MostProbableClass(outputVector):
+    mostProbableClass = -1;
+    highestOutput = -float('inf')
+    for classNdx in range (outputVector.shape[0]):
+        if outputVector[classNdx] > highestOutput:
+            highestOutput = outputVector[classNdx]
+            mostProbableClass = classNdx
+    return mostProbableClass
+# ----------------------------------------------------------------
+
 
 # Load the labels file
 idLabelUsageDataFrame = pandas.read_csv(args.labelsPlusTrainOrValid)
@@ -236,4 +249,17 @@ for epoch in range(200):
     validationLoss = lossFunction(validationOutput, torch.autograd.Variable(
         validationLabelTensor) )
 
-    print("Epoch {}: Average train loss ={}; validationLoss = {}".format(epoch, averageTrainLoss, validationLoss.data[0]))
+    # Accuracy
+    numberOfCorrectPredictions = 0
+    for validationNdx in range(numberOfValidationImages):
+        mostProbableClass = MostProbableClass(validationOutput[validationNdx].data)
+        if mostProbableClass == validationLabelTensor[validationNdx]:
+            numberOfCorrectPredictions += 1
+    accuracy = numberOfCorrectPredictions / numberOfValidationImages
+
+    print("Epoch {}: Average train loss = {}; validationLoss = {}; accuracy = {}".format(epoch, averageTrainLoss,
+                                                                                         validationLoss.data[0],
+                                                                                         accuracy))
+    neuralNet.Save(args.saveDirectory, str(validationLoss.data[0]))
+    trainingDataFile.write("{},{},{}\n".format(epoch, averageTrainLoss, validationLoss.data[0]))
+
