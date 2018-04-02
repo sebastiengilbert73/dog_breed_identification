@@ -16,7 +16,7 @@ parser.add_argument('baseDirectory', help='The directory containing the train an
 parser.add_argument('labelsPlusTrainOrValid', help='The csv file with 3 columns: id, breed, usage (train or valid)')
 parser.add_argument('--numberOfConvolutionLayers', help='The number of convolution layers', type=int, default=3)
 parser.add_argument('--numberOfKernelsPerLayer', help='The number of convolution kernels of each layer', type=int, default=32)
-parser.add_argument('--imageSize', help='The size cropped from a 256 x 256 image', type=int, default=224)
+parser.add_argument('--imageSize', help='The (square) size the images will be resized to', type=int, default=224)
 parser.add_argument('--maximumNumberOfTrainingImages', help='The maximum number of training images to load', type=int, default=0)
 parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
 parser.add_argument('--learningRate', help='The learning rate', type=float, default=0.001)
@@ -88,7 +88,7 @@ normalize = torchvision.transforms.Normalize(
 )
 preprocess = torchvision.transforms.Compose([
     torchvision.transforms.Scale(256),
-    torchvision.transforms.CenterCrop(args.imageSize),
+    torchvision.transforms.Resize((args.imageSize, args.imageSize)),
     torchvision.transforms.ToTensor(),
     normalize
 ])
@@ -104,8 +104,9 @@ for trainExampleNdx in range(args.maximumNumberOfTrainingImages):
     if trainExampleNdx == 0:
         print("imageFilepath = {}".format(imageFilepath))
         #trainImage.show()
-
+    #print("trainImage.size = {}".format(trainImage.size))
     img_tensor = preprocess(trainImage)
+    #print("img_tensor.shape = {}".format(img_tensor.shape))
     img_tensor.unsqueeze_(0) # img_tensor.shape: torch.Size([3, 224, 224]) -> torch.Size([1, 3, 224, 224])
     # Put it in the tensor
     trainTensor[trainExampleNdx] = img_tensor
