@@ -192,7 +192,8 @@ if args.cuda:
 
 
 optimizer = torch.optim.SGD(neuralNet.parameters(), lr=args.learningRate, momentum=args.momentum)
-lossFunction = nn.NLLLoss()
+#lossFunction = nn.NLLLoss()
+lossFunction = nn.CrossEntropyLoss()
 
 def MinibatchIndices(numberOfSamples, minibatchSize):
     shuffledList = numpy.arange(numberOfSamples)
