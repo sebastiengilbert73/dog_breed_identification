@@ -8,6 +8,7 @@ import PIL
 import os
 import numpy
 import ConvStackClassifier
+import cnn_finetune
 
 print("dog_breed_identification")
 
@@ -169,6 +170,13 @@ if args.structure is not None:
     neuralNet = ConvStackClassifier.NeuralNet(structure=args.structure)
 
 else:
+    neuralNet = cnn_finetune.make_model(
+        'resnet50',
+        pretrained=True,
+        num_classes=numberOfBreeds,
+        dropout_p=0.5,
+    )
+    """
     numberOfConvolutionKernelsList = []
     maxPoolingKernelList = []
     for layerNdx in range(args.numberOfConvolutionLayers):
@@ -178,6 +186,7 @@ else:
     neuralNet = ConvStackClassifier.NeuralNet(numberOfConvolutionKernelsList, maxPoolingKernelList,
                                               numberOfBreeds, args.imageSize,
                                               args.dropoutRatio)
+    """
 if args.cuda:
     neuralNet.cuda() # Move to GPU
 
@@ -266,7 +275,7 @@ for epoch in range(200):
     print("Epoch {}: Average train loss = {}; validationLoss = {}; accuracy = {}".format(epoch, averageTrainLoss,
                                                                                          validationLoss.data[0],
                                                                                          accuracy))
-    neuralNet.Save(args.saveDirectory, str(validationLoss.data[0]))
+    #neuralNet.Save(args.saveDirectory, str(validationLoss.data[0]))
     trainingDataFile.write("{},{},{}\n".format(epoch, averageTrainLoss, validationLoss.data[0]))
 
 trainingDataFile.close()
