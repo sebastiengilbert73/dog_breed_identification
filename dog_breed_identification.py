@@ -98,6 +98,10 @@ trainTensor = torch.Tensor(args.maximumNumberOfTrainingImages, 3, args.imageSize
 #trainLabelTensor = torch.LongTensor(args.maximumNumberOfTrainingImages, numberOfBreeds).zero_()
 trainLabelTensor = torch.LongTensor(args.maximumNumberOfTrainingImages).zero_()
 
+if args.cuda:
+   trainTensor = trainTensor.cuda()
+   trainLabelTensor = trainLabelTensor.cuda()
+
 for trainExampleNdx in range(args.maximumNumberOfTrainingImages):
     imageFilepath = os.path.join(args.baseDirectory, "train", trainFileIDs[trainExampleNdx] + ".jpg")
 
@@ -131,6 +135,10 @@ numberOfValidationImages = min( int(args.maximumNumberOfTrainingImages * len(val
 validationTensor = torch.Tensor(numberOfValidationImages, 3, args.imageSize, args.imageSize)
 #validationLabelTensor = torch.LongTensor(numberOfValidationImages, numberOfBreeds).zero_()
 validationLabelTensor = torch.LongTensor(numberOfValidationImages).zero_()
+
+if args.cuda:
+   validationTensor = validationTensor.cuda()
+   validationLabelTensor = validationLabelTensor.cuda()
 
 for validationExampleNdx in range(numberOfValidationImages):
     imageFilepath = os.path.join(args.baseDirectory, "train", validationFileIDs[validationExampleNdx] + ".jpg")
@@ -210,11 +218,11 @@ def MinibatchIndices(numberOfSamples, minibatchSize):
     return minibatchesIndicesList
 
 
-if args.cuda:
+"""if args.cuda:
     validationTensor = validationTensor.cuda()
 if args.cuda:
     validationLabelTensor = validationLabelTensor.cuda()
-
+"""
 minibatchSize = 64
 minibatchIndicesListList = MinibatchIndices(args.maximumNumberOfTrainingImages, minibatchSize)
 
@@ -228,11 +236,15 @@ for epoch in range(200):
     for minibatchListNdx in range(len(minibatchIndicesListList)):
         minibatchIndicesList = minibatchIndicesListList[minibatchListNdx]
         thisMinibatchSize = len(minibatchIndicesList)
-
+        indicesTensor = torch.LongTensor(minibatchIndicesList)
+        if args.cuda:
+           indicesTensor = indicesTensor.cuda()
         minibatchInputImagesTensor = torch.autograd.Variable(
-            torch.index_select(trainTensor, 0, torch.LongTensor(minibatchIndicesList)))
+            torch.index_select(trainTensor, 0, indicesTensor))
+        minibatchInputImagesTensor.requires_grad=True
         minibatchTargetOutputTensor = torch.autograd.Variable(
-            torch.index_select(trainLabelTensor, 0, torch.LongTensor(minibatchIndicesList)))
+            torch.index_select(trainLabelTensor, 0, indicesTensor))
+        minibatchTargetOutputTensor.requires_grad=False
         if args.cuda:
             minibatchInputImagesTensor = minibatchInputImagesTensor.cuda()
             minibatchTargetOutputTensor = minibatchTargetOutputTensor.cuda()
