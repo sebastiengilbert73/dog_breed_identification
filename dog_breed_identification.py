@@ -178,12 +178,20 @@ if args.structure is not None:
     neuralNet = ConvStackClassifier.NeuralNet(structure=args.structure)
 
 else:
-    neuralNet = cnn_finetune.make_model(
+    neuralNet = torchvision.models.resnet18(pretrained=True)
+    for param in neuralNet.parameters():
+        param.requires_grad = False
+    # Replace the last fully-connected layer
+    # Parameters of newly constructed modules have requires_grad=True by default
+    neuralNet.fc = nn.Linear(512, numberOfBreeds)
+
+    """neuralNet = cnn_finetune.make_model(
         'resnet50',
         pretrained=True,
         num_classes=numberOfBreeds,
         dropout_p=0.5,
     )
+    """
     """
     numberOfConvolutionKernelsList = []
     maxPoolingKernelList = []
@@ -199,7 +207,8 @@ if args.cuda:
     neuralNet.cuda() # Move to GPU
 
 
-optimizer = torch.optim.SGD(neuralNet.parameters(), lr=args.learningRate, momentum=args.momentum)
+#optimizer = torch.optim.SGD(neuralNet.parameters(), lr=args.learningRate, momentum=args.momentum)
+optimizer = torch.optim.SGD(neuralNet.fc.parameters(), lr=args.learningRate, momentum=args.momentum)
 #lossFunction = nn.NLLLoss()
 lossFunction = nn.CrossEntropyLoss()
 
